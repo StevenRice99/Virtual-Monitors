@@ -1,26 +1,22 @@
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
+using System.Linq;
 using UnityEngine;
 using uWindowCapture;
-using Debug = UnityEngine.Debug;
+using WindowsDisplayAPI;
+using Display = WindowsDisplayAPI.Display;
 
 public class Manager : MonoBehaviour
 {
-    private static readonly string OS = Environment.Is64BitOperatingSystem ? "deviceinstaller64.exe" : "deviceinstaller32.exe";
-    private static readonly string Dir = Path.Combine(Application.dataPath, "..", "usbmmidd_v2");
-
     private static Manager _manager;
-
-    [Tooltip("The number of screens there can be.")]
-    [Min(1)]
-    [SerializeField]
-    private int screens = 2;
 
     [Tooltip("Prefab for the monitors.")]
     [SerializeField]
     private UwcWindowTexture windowPrefab;
+
+    [Tooltip("Scale per 1000 pixels.")]
+    [Min(float.Epsilon)]
+    [SerializeField]
+    private float scalePer1000Pixel = 1;
 
     private readonly List<UwcWindowTexture> _windows = new();
 
@@ -36,119 +32,35 @@ public class Manager : MonoBehaviour
 
     private void Update()
     {
-        if (_windows.Count < screens)
-        {
-            AddScreens();
-        }
-        else if (_windows.Count > screens)
-        {
-            RemoveScreens();
-        }
-
-        for (int i = 0; i < _windows.Count; i++)
-        {
-            _windows[i].desktopIndex = i;
-        }
-    }
-
-    private void AddScreens()
-    {
-#if UNITY_EDITOR
-        const int initial = 2;
-#else
-        int initial = Display.displays.Length;
-#endif
-        for (int i = 0; i < initial; i++)
+        Display[] displays = Display.GetDisplays().OrderByDescending(d => d.DisplayName).ToArray();
+        
+        for (int i = 0; i < displays.Length; i++)
         {
             CreateWindow(i);
         }
 
-        int add = screens - initial;
-
-        for (int i = 0; i < add; i++)
+        while (_windows.Count > displays.Length)
         {
-            if (!ExecuteCommand(Path.Combine(Dir, $"{OS} enableidd 1")))
-            {
-                Debug.LogError("Failed to create a virtual monitor.");
-                return;
-            }
-        
-            CreateWindow(initial + i);
+            Destroy(_windows[^1].gameObject);
+            _windows.Remove(_windows[^1]);
         }
-    }
 
-    private void RemoveScreens()
-    {
-        for (int i = _windows.Count; i > screens; i--)
+        for (int i = 0; i < _windows.Count; i++)
         {
-            Destroy(_windows[i - 1].gameObject);
-            _windows.RemoveAt(i - 1);
+            _windows[i].transform.position = new(displays[i].CurrentSetting.Position.X / (1000 * scalePer1000Pixel), -displays[i].CurrentSetting.Position.Y / (1000 * scalePer1000Pixel), 0);
         }
     }
 
     private void CreateWindow(int index)
     {
-        if (_windows.Count > index)
+        if (_windows.Count <= index)
         {
-            return;
+            _windows.Add(Instantiate(windowPrefab));
+            _windows[index].name = $"Desktop {index}";
+            _windows[index].type = WindowTextureType.Desktop;
         }
         
-        UwcWindowTexture window = Instantiate(windowPrefab);
-        window.name = $"Desktop {index}";
-        window.type = WindowTextureType.Desktop;
-        window.desktopIndex = index;
-        _windows.Add(window);
-    }
-
-    private void OnDestroy()
-    {
-        if (_manager != this)
-        {
-            return;
-        }
-        
-        for (int i = 0; i < 4; i++)
-        {
-            if (!ExecuteCommand(Path.Combine(Dir, $"{OS} enableidd 0")))
-            {
-                break;
-            }
-        }
-    }
-
-    private static bool ExecuteCommand(string command)
-    {
-        Process process = Process.Start(new ProcessStartInfo("cmd.exe", $"/c {command}")
-        {
-            CreateNoWindow = true,
-            UseShellExecute = false,
-            RedirectStandardError = true,
-            RedirectStandardOutput = true
-        });
-        
-        if (process == null)
-        {
-            return false;
-        }
-
-        process.WaitForExit();
-
-        string output = process.StandardOutput.ReadToEnd();
-        string error = process.StandardError.ReadToEnd();
-        int code = process.ExitCode;
-        process.Close();
-
-        if (!string.IsNullOrEmpty(output))
-        {
-            Debug.Log($"Exit code: {code}\n{output}");
-        }
-
-        if (string.IsNullOrEmpty(error))
-        {
-            return true;
-        }
-
-        Debug.LogError($"Exit code: {code}\n{error}");
-        return false;
+        _windows[index].desktopIndex = index;
+        _windows[index].scalePer1000Pixel = scalePer1000Pixel;
     }
 }
