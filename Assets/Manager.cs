@@ -4,6 +4,7 @@ using UnityEngine;
 using uWindowCapture;
 using Display = WindowsDisplayAPI.Display;
 
+[RequireComponent(typeof(UwcManager))]
 public class Manager : MonoBehaviour
 {
     private static Manager _manager;
@@ -23,31 +24,47 @@ public class Manager : MonoBehaviour
 
     private int2 _offset;
 
-    private void Awake()
+    private void Start()
     {
         if (_manager != null)
         {
-            Destroy(gameObject);
+            if (_manager != this)
+            {
+                Destroy(gameObject);
+            }
+            
+            return;
         }
 
         _manager = this;
+
+        if (GetComponent<UwcManager>() == null)
+        {
+            gameObject.AddComponent<UwcManager>();
+        }
         
-        Display[] displays = Display.GetDisplays().OrderByDescending(d => d.DisplayName).ToArray();
+        UwcManager.instance.debugModeFromInspector = DebugMode.None;
+        UwcManager.instance.windowTitlesUpdateTiming = WindowTitlesUpdateTiming.Manual;
 
         int minX = int.MaxValue;
         int maxX = int.MinValue;
         int minY = int.MaxValue;
         int maxY = int.MinValue;
+        
+        Display[] displays = Display.GetDisplays().ToArray();
 
         _windows = new WindowContainer[displays.Length];
+        _data = new DisplayData[displays.Length];
         
         for (int i = 0; i < displays.Length; i++)
         {
+            _data[i] = new(displays[i].DisplayName, displays[i].CurrentSetting.Position.X, displays[i].CurrentSetting.Position.Y);
+            
             _windows[i] = new(Instantiate(windowPrefab))
             {
                 Window =
                 {
-                    name = "Desktop Display",
+                    name = _data[i].Name,
                     type = WindowTextureType.Desktop,
                     updateTitle = false,
                     createChildWindows = false,
@@ -61,45 +78,48 @@ public class Manager : MonoBehaviour
                 Set = false
             };
 
-            if (displays[i].CurrentSetting.Position.X < minX)
+            if (_data[i].X < minX)
             {
-                minX = displays[i].CurrentSetting.Position.X;
+                minX = _data[i].X;
             }
 
-            if (displays[i].CurrentSetting.Position.X > maxX)
+            if (_data[i].X > maxX)
             {
-                maxX = displays[i].CurrentSetting.Position.X;
+                maxX = _data[i].X;
             }
             
-            if (displays[i].CurrentSetting.Position.Y < minY)
+            if (_data[i].Y < minY)
             {
-                minY = displays[i].CurrentSetting.Position.Y;
+                minY = _data[i].Y;
             }
 
-            if (displays[i].CurrentSetting.Position.Y > maxY)
+            if (_data[i].Y > maxY)
             {
-                maxY = displays[i].CurrentSetting.Position.Y;
+                maxY = _data[i].Y;
             }
         }
 
         _offset = new((maxX + minX) / 2, (maxY + minY) / 2);
-
-        _data = new DisplayData[displays.Length];
-        for (int i = 0; i < _data.Length; i++)
-        {
-            _data[i] = new(displays[i].DisplayName, displays[i].CurrentSetting.Position.X, displays[i].CurrentSetting.Position.Y);
-        }
-        
-        UwcManager.instance.debugModeFromInspector = DebugMode.None;
     }
 
     private void Update()
     {
+        bool update = false;
+        
         for (int i = 0; i < _windows.Length; i++)
         {
             _windows[i].Window.desktopIndex = i;
             _windows[i].Window.scalePer1000Pixel = scalePer1000Pixel;
             _windows[i].Set = false;
+            if (_windows[i].Updated)
+            {
+                update = true;
+            }
+        }
+
+        if (!update)
+        {
+            return;
         }
 
         float scale = 1000 * scalePer1000Pixel;
@@ -109,6 +129,7 @@ public class Manager : MonoBehaviour
             WindowContainer match = _windows.Where(w => !w.Set).OrderByDescending(w => w.Name == _data[i].Name).First();
             match.Set = true;
             match.Window.transform.position = new((_data[i].X - _offset.x) / scale, -(_data[i].Y - _offset.y) / scale, 0);
+            match.Window.gameObject.name = match.Name;
         }
     }
 
@@ -119,6 +140,8 @@ public class Manager : MonoBehaviour
         public bool Set;
 
         public string Name => Window == null || Window.window == null ? null : Window.window.title;
+
+        public bool Updated => Window != null && Name != Window.gameObject.name;
 
         public WindowContainer(UwcWindowTexture window)
         {
