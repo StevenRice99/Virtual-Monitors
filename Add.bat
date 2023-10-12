@@ -1,16 +1,21 @@
 @cd /d "%~dp0"
+if not exist Virtual-Monitors (
+	@goto stop
+)
+@cd Virtual-Monitors
+if not exist usbmmidd_v2 (
+	@goto stop
+)
+@cd usbmmidd_v2
 
 @goto %PROCESSOR_ARCHITECTURE%
 @exit
 
 :AMD64
-@cmd /c deviceinstaller64.exe install usbmmidd.inf usbmmidd
 @cmd /c deviceinstaller64.exe enableidd 1
-@goto end
+@goto stop
 
 :x86
-@cmd /c deviceinstaller.exe install usbmmidd.inf usbmmidd
 @cmd /c deviceinstaller.exe enableidd 1
 
-:end
-@pause
+:stop

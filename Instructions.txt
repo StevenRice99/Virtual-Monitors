@@ -1,0 +1,23 @@
+Step 1.
+Install the driver to create virtual monitors.
+Right click "Install.bat" and click "Run as administrator".
+
+Step 2.
+Activate virtual monitors.
+This can be done up to four times to create four virtual monitors.
+Right click "Add.bat" and click "Run as administrator".
+If you want to remove a monitor:
+Right click "Remove.bat" and click "Run as administrator".
+
+Step 3.
+Arrange your monitors and virtual monitors.
+The easiest way is to right click your desktop and click "Display settings".
+
+Step 4.
+Run the Unity program.
+Go inside the "Build" folder and and run "Desktop Duplicate.exe".
+Use the arrow keys to pan around the virtual monitors.
+
+Step 5.
+Once done, you can remove all virtual monitors and the drivers.
+Right click "Unnstall.bat" and click "Run as administrator".

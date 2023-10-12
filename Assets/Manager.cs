@@ -18,6 +18,16 @@ public class Manager : MonoBehaviour
     [SerializeField]
     private float scalePer1000Pixel = 1;
 
+    [Tooltip("The height to place the screens at.")]
+    [Min(0)]
+    [SerializeField]
+    private float height;
+
+    [Tooltip("The distance to place the screens at.")]
+    [Min(0)]
+    [SerializeField]
+    private float distance;
+
     private WindowContainer[] _windows;
 
     private DisplayData[] _data;
@@ -75,7 +85,8 @@ public class Manager : MonoBehaviour
                     desktopIndex = i,
                     scalePer1000Pixel = scalePer1000Pixel
                 },
-                Set = false
+                Set = false,
+                Data = i
             };
 
             if (_data[i].X < minX)
@@ -117,19 +128,31 @@ public class Manager : MonoBehaviour
             }
         }
 
-        if (!update)
+        if (update)
         {
-            return;
+            for (int i = 0; i < _windows.Length; i++)
+            {
+                WindowContainer match = _windows.Where(w => !w.Set).OrderByDescending(w => w.Name == _data[i].Name).First();
+                match.Set = true;
+                match.Data = i;
+                match.Window.gameObject.name = match.Name;
+            }
         }
 
         float scale = 1000 * scalePer1000Pixel;
+
+        float2 offset = new(_offset.x * scalePer1000Pixel, _offset.y * scalePer1000Pixel);
         
         for (int i = 0; i < _windows.Length; i++)
         {
-            WindowContainer match = _windows.Where(w => !w.Set).OrderByDescending(w => w.Name == _data[i].Name).First();
-            match.Set = true;
-            match.Window.transform.position = new((_data[i].X - _offset.x) / scale, -(_data[i].Y - _offset.y) / scale, 0);
-            match.Window.gameObject.name = match.Name;
+            float x = (_data[_windows[i].Data].X * scalePer1000Pixel - offset.x) / scale;
+            float y = -(_data[_windows[i].Data].Y * scalePer1000Pixel - offset.y) / scale;
+            if (_windows[i].Window.window != null)
+            {
+                x /= _windows[i].Window.window.width / (_windows[i].Window.transform.localScale.x * 1000f);
+                y /= _windows[i].Window.window.height / (_windows[i].Window.transform.localScale.y * 1000f);
+            }
+            _windows[i].Window.transform.position = new(x, y + height, 0 + distance);
         }
     }
 
@@ -138,6 +161,8 @@ public class Manager : MonoBehaviour
         public readonly UwcWindowTexture Window;
 
         public bool Set;
+
+        public int Data;
 
         public string Name => Window == null || Window.window == null ? null : Window.window.title;
 
