@@ -89,6 +89,12 @@ public class Manager : MonoBehaviour
                 Data = i
             };
 
+            Collider c = _windows[i].Window.GetComponent<Collider>();
+            if (c != null)
+            {
+                Destroy(c);
+            }
+
             if (_data[i].X < minX)
             {
                 minX = _data[i].X;
