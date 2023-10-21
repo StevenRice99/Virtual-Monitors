@@ -1,15 +1,15 @@
 @cd /d "%~dp0"
-if not exist Virtual-Monitors (
-	if not exist virtual-monitors.zip (
-		powershell -Command "Invoke-WebRequest https://www.amyuni.com/downloads/usbmmidd_v2.zip -OutFile virtual-monitors.zip"
+if not exist Virtual-Monitor-Drivers (
+	if not exist virtual-monitor-drivers.zip (
+		powershell -Command "Invoke-WebRequest https://www.amyuni.com/downloads/usbmmidd_v2.zip -OutFile virtual-monitor-drivers.zip"
 	)
-	powershell Expand-Archive virtual-monitors.zip -DestinationPath Virtual-Monitors
+	powershell Expand-Archive virtual-monitor-drivers.zip -DestinationPath Virtual-Monitor-Drivers
 )
-if exist virtual-monitors.zip (
-	del virtual-monitors.zip
+if exist virtual-monitor-drivers.zip (
+	del virtual-monitor-drivers.zip
 )
 
-@cd Virtual-Monitors
+@cd Virtual-Monitor-Drivers
 @cd usbmmidd_v2
 
 @goto %PROCESSOR_ARCHITECTURE%

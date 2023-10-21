@@ -1,8 +1,8 @@
 @cd /d "%~dp0"
-if not exist Virtual-Monitors (
+if not exist Virtual-Monitor-Drivers (
 	@goto stop
 )
-@cd Virtual-Monitors
+@cd Virtual-Monitor-Drivers
 if not exist usbmmidd_v2 (
 	@goto stop
 )
