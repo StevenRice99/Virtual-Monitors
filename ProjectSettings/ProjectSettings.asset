@@ -159,7 +159,7 @@ PlayerSettings:
   androidMaxAspectRatio: 2.1
   applicationIdentifier:
     Android: com.StevenRice.VirtualMonitors
-    Standalone: com.Steven-Rice.Desktop-Duplicate
+    Standalone: com.Steven-Rice.Virtual-Monitors
   buildNumber:
     Standalone: 0
     VisionOS: 0
