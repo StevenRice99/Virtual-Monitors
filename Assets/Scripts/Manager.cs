@@ -1,5 +1,6 @@
 using System.Linq;
 using Unity.Mathematics;
+using Unity.XR.CoreUtils;
 using UnityEngine;
 using uWindowCapture;
 using Display = WindowsDisplayAPI.Display;
@@ -34,6 +35,8 @@ public class Manager : MonoBehaviour
 
     private int2 _offset;
 
+    private float _cameraHeight;
+
     private void Start()
     {
         if (_manager != null)
@@ -47,6 +50,12 @@ public class Manager : MonoBehaviour
         }
 
         _manager = this;
+
+        XROrigin xrOrigin = FindObjectOfType<XROrigin>();
+        if (xrOrigin != null)
+        {
+            _cameraHeight = xrOrigin.CameraYOffset;
+        }
 
         if (GetComponent<UwcManager>() == null)
         {
@@ -158,7 +167,7 @@ public class Manager : MonoBehaviour
                 x /= _windows[i].Window.window.width / (_windows[i].Window.transform.localScale.x * 1000f);
                 y /= _windows[i].Window.window.height / (_windows[i].Window.transform.localScale.y * 1000f);
             }
-            _windows[i].Window.transform.position = new(x, y + height, 0 + distance);
+            _windows[i].Window.transform.position = new(x, y + height + _cameraHeight, 0 + distance);
         }
     }
 
