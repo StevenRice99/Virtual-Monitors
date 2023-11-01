@@ -54,6 +54,7 @@ public class Manager : MonoBehaviour
         XROrigin xrOrigin = FindObjectOfType<XROrigin>();
         if (xrOrigin != null)
         {
+            xrOrigin.transform.position = Vector3.zero;
             _cameraHeight = xrOrigin.CameraYOffset;
         }
 
