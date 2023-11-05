@@ -38,3 +38,5 @@ The following batch files are inside the "Drivers" folder.
 
 4. Once done, you can remove all virtual monitors and the drivers.
 Right click "Uninstall.bat" and click "Run as administrator". **It is recommended you don't keep them around as you can easily "lose" your mouse on the virtual monitors.**
+
+5. **If the batch files do not work, try following the steps outlined in the video directly. Eventually, maybe this set up could be packaged into it's own WPF application so command line executions are not needed.**
