@@ -2,6 +2,13 @@
 
 This repository aims to display monitors in an XR headset with Unity. While in the editor, if you do not have a headset yourself, you can go into "Edit > Project Settings... > XR Plug-In Management > XR Interaction Toolkit" and enable "Use XR Device Simulator in scenes".
 
+**This only works on Windows systems.**
+
+To use an Oculus device:
+1. Install Oculus Rift: https://www.oculus.com/rift/setup
+2. Inside yourself, go to "Link" and connect to your computer.
+3. Run the application either in the editor or standalone and it will appear in your Oculus device.
+
 # Work to be done
 
 - It seems at some points in the Meta Quest Pro the monitors look blurry. This could potentially be a Quest Pro only issue (will need to test other headsets) or it may require some looking into the shaders that run the virtual monitors and making some changes to them.
